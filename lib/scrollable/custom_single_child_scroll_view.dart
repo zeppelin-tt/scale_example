@@ -139,6 +139,9 @@ class CustomSingleChildScrollView extends StatelessWidget {
     this.dragStartBehavior = DragStartBehavior.start,
     this.clipBehavior = Clip.hardEdge,
     this.restorationId,
+    this.onScaleUpdate,
+    this.onScaleEnd,
+    this.onScaleStart,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
   }) : assert(
           !(controller != null && (primary ?? false)),
@@ -213,6 +216,10 @@ class CustomSingleChildScrollView extends StatelessWidget {
   /// {@macro flutter.widgets.scroll_view.keyboardDismissBehavior}
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
 
+  final GestureScaleUpdateCallback? onScaleUpdate;
+  final GestureScaleStartCallback? onScaleStart;
+  final GestureScaleEndCallback? onScaleEnd;
+
   AxisDirection _getDirection(BuildContext context) {
     return getAxisDirectionFromAxisReverseAndDirectionality(context, scrollDirection, reverse);
   }
@@ -234,6 +241,9 @@ class CustomSingleChildScrollView extends StatelessWidget {
       axisDirection: axisDirection,
       controller: scrollController,
       physics: physics,
+      onScaleUpdate: onScaleUpdate,
+      onScaleStart: onScaleStart,
+      onScaleEnd: onScaleEnd,
       restorationId: restorationId,
       viewportBuilder: (BuildContext context, ViewportOffset offset) {
         return _SingleChildViewport(

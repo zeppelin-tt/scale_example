@@ -43,9 +43,6 @@ class _DetectorState extends State<Detector> {
         }
         multiTapCounter = 0;
       },
-      onHorizontalDragUpdate: (d) {
-        print(d);
-      },
       onScaleEnd: widget.onScaleEnd,
       onScaleStart: widget.onScaleStart,
       onScaleUpdate: widget.onScaleUpdate,

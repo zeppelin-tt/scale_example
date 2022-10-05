@@ -35,7 +35,4 @@ class CustomScrollPhysics extends ScrollPhysics {
     }
     return parent?.applyBoundaryConditions(position, value) ?? 0;
   }
-
-  @override
-  double get minFlingDistance => 10;
 }

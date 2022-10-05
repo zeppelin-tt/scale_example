@@ -60,10 +60,17 @@ typedef ViewportBuilder = Widget Function(BuildContext context, ViewportOffset p
 ///  * [ScrollNotification] and [NotificationListener], which can be used to watch
 ///    the scroll position without using a [ScrollController].
 class CustomScrollable extends StatefulWidget {
+  final GestureScaleUpdateCallback? onScaleUpdate;
+  final GestureScaleStartCallback? onScaleStart;
+  final GestureScaleEndCallback? onScaleEnd;
+
   /// Creates a widget that scrolls.
   ///
   /// The [axisDirection] and [viewportBuilder] arguments must not be null.
   const CustomScrollable({
+    this.onScaleUpdate,
+    this.onScaleEnd,
+    this.onScaleStart,
     super.key,
     this.axisDirection = AxisDirection.down,
     this.controller,
@@ -434,12 +441,26 @@ class CustomScrollableState extends State<CustomScrollable>
     ServicesBinding.instance.restorationManager.flushData();
   }
 
+  // This field is set during layout, and then reused until the next time it is set.
+  Map<Type, GestureRecognizerFactory> _gestureRecognizers = <Type, GestureRecognizerFactory>{};
+
   @override
   void initState() {
     if (widget.controller == null) {
       _fallbackScrollController = ScrollController();
     }
     super.initState();
+
+    // This field is set during layout, and then reused until the next time it is set.
+    _gestureRecognizers[ScaleGestureRecognizer] = GestureRecognizerFactoryWithHandlers<ScaleGestureRecognizer>(
+      () => ScaleGestureRecognizer(debugOwner: this),
+      (ScaleGestureRecognizer instance) {
+        instance
+          ..onStart = widget.onScaleStart
+          ..onUpdate = widget.onScaleUpdate
+          ..onEnd = widget.onScaleEnd;
+      },
+    );
   }
 
   @override
@@ -525,8 +546,6 @@ class CustomScrollableState extends State<CustomScrollable>
   final GlobalKey<RawGestureDetectorState> _gestureDetectorKey = GlobalKey<RawGestureDetectorState>();
   final GlobalKey _ignorePointerKey = GlobalKey();
 
-  // This field is set during layout, and then reused until the next time it is set.
-  Map<Type, GestureRecognizerFactory> _gestureRecognizers = const <Type, GestureRecognizerFactory>{};
   bool _shouldIgnorePointer = false;
 
   bool? _lastCanDrag;
@@ -547,46 +566,44 @@ class CustomScrollableState extends State<CustomScrollable>
     } else {
       switch (widget.axis) {
         case Axis.vertical:
-          _gestureRecognizers = <Type, GestureRecognizerFactory>{
-            VerticalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<VerticalDragGestureRecognizer>(
-              () => VerticalDragGestureRecognizer(supportedDevices: _configuration.dragDevices),
-              (VerticalDragGestureRecognizer instance) {
-                instance
-                  ..onDown = _handleDragDown
-                  ..onStart = _handleDragStart
-                  ..onUpdate = _handleDragUpdate
-                  ..onEnd = _handleDragEnd
-                  ..onCancel = _handleDragCancel
-                  ..minFlingDistance = _physics?.minFlingDistance
-                  ..minFlingVelocity = _physics?.minFlingVelocity
-                  ..maxFlingVelocity = _physics?.maxFlingVelocity
-                  ..velocityTrackerBuilder = _configuration.velocityTrackerBuilder(context)
-                  ..dragStartBehavior = widget.dragStartBehavior
-                  ..gestureSettings = _mediaQueryData?.gestureSettings;
-              },
-            ),
-          };
+          _gestureRecognizers[VerticalDragGestureRecognizer] =
+              GestureRecognizerFactoryWithHandlers<VerticalDragGestureRecognizer>(
+            () => VerticalDragGestureRecognizer(supportedDevices: _configuration.dragDevices),
+            (VerticalDragGestureRecognizer instance) {
+              instance
+                ..onDown = _handleDragDown
+                ..onStart = _handleDragStart
+                ..onUpdate = _handleDragUpdate
+                ..onEnd = _handleDragEnd
+                ..onCancel = _handleDragCancel
+                ..minFlingDistance = _physics?.minFlingDistance
+                ..minFlingVelocity = _physics?.minFlingVelocity
+                ..maxFlingVelocity = _physics?.maxFlingVelocity
+                ..velocityTrackerBuilder = _configuration.velocityTrackerBuilder(context)
+                ..dragStartBehavior = widget.dragStartBehavior
+                ..gestureSettings = _mediaQueryData?.gestureSettings;
+            },
+          );
           break;
         case Axis.horizontal:
-          _gestureRecognizers = <Type, GestureRecognizerFactory>{
-            HorizontalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<HorizontalDragGestureRecognizer>(
-              () => HorizontalDragGestureRecognizer(supportedDevices: _configuration.dragDevices),
-              (HorizontalDragGestureRecognizer instance) {
-                instance
-                  ..onDown = _handleDragDown
-                  ..onStart = _handleDragStart
-                  ..onUpdate = _handleDragUpdate
-                  ..onEnd = _handleDragEnd
-                  ..onCancel = _handleDragCancel
-                  ..minFlingDistance = _physics?.minFlingDistance
-                  ..minFlingVelocity = _physics?.minFlingVelocity
-                  ..maxFlingVelocity = _physics?.maxFlingVelocity
-                  ..velocityTrackerBuilder = _configuration.velocityTrackerBuilder(context)
-                  ..dragStartBehavior = widget.dragStartBehavior
-                  ..gestureSettings = _mediaQueryData?.gestureSettings;
-              },
-            ),
-          };
+          _gestureRecognizers[HorizontalDragGestureRecognizer] =
+              GestureRecognizerFactoryWithHandlers<HorizontalDragGestureRecognizer>(
+            () => HorizontalDragGestureRecognizer(supportedDevices: _configuration.dragDevices),
+            (HorizontalDragGestureRecognizer instance) {
+              instance
+                ..onDown = _handleDragDown
+                ..onStart = _handleDragStart
+                ..onUpdate = _handleDragUpdate
+                ..onEnd = _handleDragEnd
+                ..onCancel = _handleDragCancel
+                ..minFlingDistance = _physics?.minFlingDistance
+                ..minFlingVelocity = _physics?.minFlingVelocity
+                ..maxFlingVelocity = _physics?.maxFlingVelocity
+                ..velocityTrackerBuilder = _configuration.velocityTrackerBuilder(context)
+                ..dragStartBehavior = widget.dragStartBehavior
+                ..gestureSettings = _mediaQueryData?.gestureSettings;
+            },
+          );
           break;
       }
     }

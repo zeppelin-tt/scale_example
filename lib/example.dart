@@ -64,35 +64,35 @@ class _ExampleState extends State<Example> {
           // isScrollingController.value = true;
           print('end');
         },
-        onScaleStart: (details) {
-          // if (details.pointerCount != 2) {
-          //   return;
-          // }
-          print('start');
-          // isScrollingController.value = false;
-          for (final controller in controllers) {
-            controller.saveNewWidth();
-          }
-        },
-        onScaleEnd: (details) {
-          if (details.pointerCount != 2) {
-            return;
-          }
-          print('end');
-          // isScrollingController.value = true;
-        },
-        onScaleUpdate: (details) {
-          if (details.pointerCount != 2) {
-            return;
-          }
-          debugPrint(details.scale.toString());
-          for (final controller in controllers) {
-            controller.setScale(details.scale);
-          }
-        },
         child: CustomSingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: physics,
+          onScaleStart: (details) {
+            // if (details.pointerCount != 2) {
+            //   return;
+            // }
+            print('start');
+            // isScrollingController.value = false;
+            for (final controller in controllers) {
+              controller.saveNewWidth();
+            }
+          },
+          onScaleEnd: (details) {
+            if (details.pointerCount != 2) {
+              return;
+            }
+            print('end');
+            // isScrollingController.value = true;
+          },
+          onScaleUpdate: (details) {
+            if (details.pointerCount != 2) {
+              return;
+            }
+            debugPrint(details.scale.toString());
+            for (final controller in controllers) {
+              controller.setScale(details.scale);
+            }
+          },
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
