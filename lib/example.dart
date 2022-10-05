@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:scale_example/detector.dart';
 import 'package:scale_example/item.dart';
 import 'package:scale_example/item_controller.dart';
 import 'package:scale_example/item_data.dart';
 import 'package:scale_example/physics/custom_scroll_physics.dart';
 import 'package:scale_example/physics/is_scrolling_enabled_dispatcher.dart';
+import 'package:scale_example/scrollable/custom_single_child_scroll_view.dart';
 
 class Example extends StatefulWidget {
   const Example({
@@ -17,7 +19,8 @@ class Example extends StatefulWidget {
 class _ExampleState extends State<Example> {
   int selected = -1;
   late final ScrollController scrollController;
-  final isScrollingController = IsScrollingEnabledDispatcher(initialValue: false);
+  final isScrollingController = IsScrollingEnabledDispatcher(initialValue: true);
+  late final CustomScrollPhysics physics;
 
   final controllers = [
     ItemController(initialData: const ItemData(scale: 1, width: 120, defaultWidth: 120)),
@@ -29,11 +32,11 @@ class _ExampleState extends State<Example> {
     ItemController(initialData: const ItemData(scale: 1, width: 120, defaultWidth: 120)),
   ];
 
-
   @override
   void initState() {
     super.initState();
     scrollController = ScrollController();
+    physics = CustomScrollPhysics(isScrollingEnabledDispatcher: isScrollingController);
   }
 
   @override
@@ -50,16 +53,23 @@ class _ExampleState extends State<Example> {
 
     return Material(
       color: Colors.black,
-      child: GestureDetector(
-        onHorizontalDragUpdate: (details) {
-          print(details);
+      child: Detector(
+        onMultiTapDown: (count, details) {
+          print(count);
+          // if (count > 1) {
+          // isScrollingController.value = false;
+          // }
+        },
+        onMultiTapCancel: () {
+          // isScrollingController.value = true;
+          print('end');
         },
         onScaleStart: (details) {
           // if (details.pointerCount != 2) {
           //   return;
           // }
           print('start');
-          isScrollingController.value = false;
+          // isScrollingController.value = false;
           for (final controller in controllers) {
             controller.saveNewWidth();
           }
@@ -69,7 +79,7 @@ class _ExampleState extends State<Example> {
             return;
           }
           print('end');
-          isScrollingController.value = true;
+          // isScrollingController.value = true;
         },
         onScaleUpdate: (details) {
           if (details.pointerCount != 2) {
@@ -80,8 +90,9 @@ class _ExampleState extends State<Example> {
             controller.setScale(details.scale);
           }
         },
-        child: SingleChildScrollView(
+        child: CustomSingleChildScrollView(
           scrollDirection: Axis.horizontal,
+          physics: physics,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
